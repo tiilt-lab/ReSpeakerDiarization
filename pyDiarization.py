@@ -1,5 +1,5 @@
-from pyAudioAnalysis import audioSegmentation as aS
 from __future__ import print_function
+from pyAudioAnalysis import audioSegmentation as aS
 import numpy
 import sklearn.cluster
 import scipy
@@ -17,8 +17,7 @@ import sklearn.cluster
 import hmmlearn.hmm
 import pickle as cPickle
 import glob
-
-print(aS.speakerDiarization("data/diarizationExample.wav",0,2.0,.2,.05,35,True)es)
+import json
 
 def speakerDiarization(filename, n_speakers, mt_size=2.0, mt_step=0.2,
                        st_win=0.05, lda_dim=35, plot_res=False):
@@ -213,7 +212,7 @@ def speakerDiarization(filename, n_speakers, mt_size=2.0, mt_step=0.2,
     for i in range(1):
         # hmm training
         start_prob, transmat, means, cov = \
-            trainHMM_computeStatistics(mt_feats_norm_or, cls)
+            aS.trainHMM_computeStatistics(mt_feats_norm_or, cls)
         hmm = hmmlearn.hmm.GaussianHMM(start_prob.shape[0], "diag")
         hmm.startprob_ = start_prob
         hmm.transmat_ = transmat
@@ -232,8 +231,8 @@ def speakerDiarization(filename, n_speakers, mt_size=2.0, mt_step=0.2,
     gt_file = filename.replace('.wav', '.segments')
     # if groundturh exists
     if os.path.isfile(gt_file):
-        [seg_start, seg_end, seg_labs] = readSegmentGT(gt_file)
-        flags_gt, class_names_gt = segs2flags(seg_start, seg_end, seg_labs, mt_step)
+        [seg_start, seg_end, seg_labs] = aS.readSegmentGT(gt_file)
+        flags_gt, class_names_gt = aS.segs2flags(seg_start, seg_end, seg_labs, mt_step)
 
     if plot_res:
         fig = plt.figure()
@@ -251,7 +250,7 @@ def speakerDiarization(filename, n_speakers, mt_size=2.0, mt_step=0.2,
             ax1.plot(numpy.array(range(len(flags_gt))) *
                      mt_step + mt_step / 2.0, flags_gt, 'r')
         purity_cluster_m, purity_speaker_m = \
-            evaluateSpeakerDiarization(cls, flags_gt)
+            aS.evaluateSpeakerDiarization(cls, flags_gt)
         print("{0:.1f}\t{1:.1f}".format(100 * purity_cluster_m,
                                         100 * purity_speaker_m))
         if plot_res:
@@ -268,3 +267,12 @@ def speakerDiarization(filename, n_speakers, mt_size=2.0, mt_step=0.2,
             plt.ylabel("average clustering's sillouette");
         plt.show()
     return cls
+
+with open('data.json', 'r') as f:
+    data_dict=json.load(f)
+
+for i in range(len(data_dict['results'])):
+        print(data_dict['results'][i]['alternatives'][0]['timestamps'])
+
+#print(aS.speakerDiarization("data/diarizationExample.wav",0,1.0,.2,.05,0,True))
+#print(aS.speakerDiarization("data/diarizationExample.wav",0,1.0,.2,.05,35,True))

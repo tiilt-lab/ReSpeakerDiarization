@@ -22,17 +22,14 @@ print(json.dumps(models, indent=2))
 model = service.get_model('en-US_BroadbandModel').get_result()
 print(json.dumps(model, indent=2))
 
-with open(join(dirname(__file__), 'audio-file.flac'),
+with open(join(dirname(__file__), 'data/diarizationExample.wav'),
           'rb') as audio_file:
-    print(json.dumps(
-        service.recognize(
-            audio=audio_file,
-            content_type='audio/flac',
-            timestamps=True,
-            word_confidence=True,
-            speaker_labels=True).get_result(),
-        indent=2))
 
+    data = service.recognize(audio=audio_file, content_type='audio/wav', timestamps=True, word_confidence=True, speaker_labels=True).get_result()
+    with open('data.json', 'w') as outfile:
+        json.dump(data, outfile, indent=2)
+
+'''
 # Example using websockets
 class MyRecognizeCallback(RecognizeCallback):
     def __init__(self):
@@ -59,11 +56,12 @@ class MyRecognizeCallback(RecognizeCallback):
     def on_data(self, data):
         print(data)
 
-# Example using threads in a non-blocking way
+# ample using threads in a non-blocking way
 mycallback = MyRecognizeCallback()
-audio_file = open(join(dirname(__file__), 'audio-file.flac'), 'rb')
+audio_file = open(join(dirname(__file__), 'data/diarizationExample.wav'), 'rb')
 audio_source = AudioSource(audio_file)
 recognize_thread = threading.Thread(
     target=service.recognize_using_websocket,
-    args=(audio_source, "audio/flac; rate=44100, speaker_labels=true", mycallback))
+    args=(audio_source, "audio/wav; rate=44100, speaker_labels=true", mycallback))
 recognize_thread.start()
+'''
