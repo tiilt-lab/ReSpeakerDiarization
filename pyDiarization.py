@@ -32,6 +32,7 @@ def speakerDiarization(filename, n_speakers, mt_size=2.0, mt_step=0.2,
         - plot_res     (opt)   0 for not plotting the results 1 for plottingy
     '''
     [fs, x] = audioBasicIO.readAudioFile(filename)
+    print("The signal is:\n{}\n\nFS is:\n{}\n\n".format(x,fs))
     x = audioBasicIO.stereo2mono(x)
     duration = len(x) / fs
 
@@ -271,8 +272,14 @@ def speakerDiarization(filename, n_speakers, mt_size=2.0, mt_step=0.2,
 with open('data.json', 'r') as f:
     data_dict=json.load(f)
 
+utterances = []
 for i in range(len(data_dict['results'])):
-        print(data_dict['results'][i]['alternatives'][0]['timestamps'])
+        utterances = utterances + data_dict['results'][i]['alternatives'][0]['timestamps']
 
-#print(aS.speakerDiarization("data/diarizationExample.wav",0,1.0,.2,.05,0,True))
+print(utterances)
+
+#TODO
+def FeatureExtraction(signal, utterances, fs, st_win, st_step):
+    print("FeatureExtraction")
+print(speakerDiarization("data/diarizationExample.wav",0,1.0,.2,.05,0,False))
 #print(aS.speakerDiarization("data/diarizationExample.wav",0,1.0,.2,.05,35,True))
