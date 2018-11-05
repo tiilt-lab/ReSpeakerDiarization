@@ -20,7 +20,7 @@ import glob
 import json
 
 def speakerDiarization(filename, n_speakers, mt_size=2.0, mt_step=0.2,
-                       st_win=0.05, lda_dim=35, plot_res=False, prev_mt_feats_norm=numpy.array([]), prev_mt_feats_norm_or=numpy.array([]), prev_cls=numpy.array([])):
+                       st_win=0.05, lda_dim=35, plot_res=False, prev_mt_feats_norm=numpy.array([]), prev_mt_feats_norm_or=numpy.array([]), prev_cls=numpy.array([]), prev_mt_feats=numpy.array([])):
     '''
     ARGUMENTS:
         - filename:        the name of the WAV file to be analyzed
@@ -62,6 +62,11 @@ def speakerDiarization(filename, n_speakers, mt_size=2.0, mt_step=0.2,
                        42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53]
 
     mt_feats = mt_feats[iFeaturesSelect, :]
+    print(mt_feats.shape)
+    print()
+    if(prev_mt_feats.size != 0):
+        mt_feats = numpy.concatenate((prev_mt_feats, mt_feats), 1)
+    print(mt_feats.shape)
 
     (mt_feats_norm, MEAN, STD) = aT.normalizeFeatures([mt_feats.T])
     mt_feats_norm = mt_feats_norm[0].T
@@ -84,8 +89,8 @@ def speakerDiarization(filename, n_speakers, mt_size=2.0, mt_step=0.2,
     mt_feats_norm_or = mt_feats_norm
     print(mt_feats_norm_or.shape)
     print()
-    if(prev_mt_feats_norm_or.size != 0):
-        mt_feats_norm_or = numpy.concatenate((prev_mt_feats_norm_or,mt_feats_norm_or), 1)
+    #if(prev_mt_feats_norm_or.size != 0):
+        #mt_feats_norm_or = numpy.concatenate((prev_mt_feats_norm_or,mt_feats_norm_or), 1)
     print(mt_feats_norm_or.shape)
     n_wins = mt_feats_norm_or.shape[1]
     perOutLier = (100.0 * (n_wins - i_non_outliers.shape[0])) / n_wins
@@ -150,11 +155,7 @@ def speakerDiarization(filename, n_speakers, mt_size=2.0, mt_step=0.2,
     #print(mt_feats_norm)
     #print()
     #print(prev_mt_feats_norm)
-    print(mt_feats_norm.shape)
-    print()
-    if(prev_mt_feats_norm.size != 0):
-        mt_feats_norm = numpy.concatenate((prev_mt_feats_norm, mt_feats_norm), 1)
-    print(mt_feats_norm.shape)
+
 
     if n_speakers <= 0:
         s_range = range(2, 10)
@@ -164,13 +165,15 @@ def speakerDiarization(filename, n_speakers, mt_size=2.0, mt_step=0.2,
     sil_all = []
     centersAll = []
 
-    #print(mt_feats_norm)
+    print(mt_feats_norm)
 
     for iSpeakers in s_range:
         k_means = sklearn.cluster.KMeans(n_clusters=iSpeakers)
         k_means.fit(mt_feats_norm.T)
         cls = k_means.labels_
         means = k_means.cluster_centers_
+        #print("Number of speakers testing: {}".format(iSpeakers))
+        #print(cls)
 
         # Y = distance.squareform(distance.pdist(mt_feats_norm.T))
         clsAll.append(cls)
@@ -227,7 +230,7 @@ def speakerDiarization(filename, n_speakers, mt_size=2.0, mt_step=0.2,
     for i in range(mt_feats_norm_or.shape[1]):
         j = numpy.argmin(numpy.abs(i-i_non_outliers))
         cls[i] = clsAll[imax][j]
-    print(cls)
+    #print(cls)
     #print()
     #if(prev_cls.size != 0):
     #    cls = numpy.concatenate((prev_cls,cls),0)
@@ -235,7 +238,7 @@ def speakerDiarization(filename, n_speakers, mt_size=2.0, mt_step=0.2,
     # Post-process method 1: hmm smoothing
     for i in range(1):
         # hmm training
-        print("HMM: {} - {}".format(mt_feats_norm_or.shape, cls.shape))
+        #print("HMM: {} - {}".format(mt_feats_norm_or.shape, cls.shape))
         start_prob, transmat, means, cov = \
             aS.trainHMM_computeStatistics(mt_feats_norm_or, cls)
         hmm = hmmlearn.hmm.GaussianHMM(start_prob.shape[0], "diag")
@@ -291,7 +294,7 @@ def speakerDiarization(filename, n_speakers, mt_size=2.0, mt_step=0.2,
             plt.xlabel("number of clusters");
             plt.ylabel("average clustering's sillouette");
         plt.show()
-    return cls, mt_feats_norm, mt_feats_norm_or
+    return cls, mt_feats_norm, mt_feats_norm_or, mt_feats, class_names
 
 def getUtterances():
     with open('data.json', 'r') as f:
@@ -353,15 +356,18 @@ def FeatureExtraction(signal, utterances, fs, st_win, st_step):
 '''
 prev_mt_feats_norm = numpy.array([])
 prev_mt_feats_norm_or = numpy.array([])
+prev_mt_feats = numpy.array([])
 prev_cls = numpy.array([])
+class_names = ""
 i=0
 while os.path.isfile("chunks/chunk{}.wav".format(i)):
     file = "chunks/chunk{}.wav".format(i)
     print(file)
-    cls, curr_feats, curr_mt_feats_norm_or = speakerDiarization(file,0,1.0,.2,.05,0,True, prev_mt_feats_norm, prev_mt_feats_norm_or, prev_cls)
+    cls, curr_feats, curr_mt_feats_norm_or, curr_mt_feats, class_names = speakerDiarization(file,2,1.0,.2,.05,0,False, prev_mt_feats_norm, prev_mt_feats_norm_or, prev_cls, prev_mt_feats)
     prev_mt_feats_norm = curr_feats
     prev_mt_feats_norm_or = curr_mt_feats_norm_or
     prev_cls = cls
+    prev_mt_feats = curr_mt_feats
     i += 1
     '''
     if(prev_mt_feats_norm.size != 0):
@@ -369,6 +375,16 @@ while os.path.isfile("chunks/chunk{}.wav".format(i)):
     else:
         prev_mt_feats_norm = curr_feats
         '''
-        #print(cls)
+print(cls)
+[fs, x] = audioBasicIO.readAudioFile("test.wav")
+duration = len(x) / fs
+fig = plt.figure()
+ax1 = fig.add_subplot(111)
+ax1.set_yticks(numpy.array(range(len(class_names))))
+ax1.axis((0, duration, -1, len(class_names)))
+ax1.set_yticklabels(class_names)
+ax1.plot(numpy.array(range(len(cls)))*.2+.2/2.0, cls)
+plt.show()
+
 #print(speakerDiarization("data/diarizationExample.wav",0,1.0,.2,.05,0,False))
 #print(aS.speakerDiarization("data/diarizationExample.wav",0,1.0,.2,.05,35,True))

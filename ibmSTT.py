@@ -22,7 +22,7 @@ print(json.dumps(models, indent=2))
 model = service.get_model('en-US_BroadbandModel').get_result()
 print(json.dumps(model, indent=2))
 
-with open(join(dirname(__file__), 'data/diarizationExample.wav'),
+with open(join(dirname(__file__), 'test.wav'),
           'rb') as audio_file:
 
     data = service.recognize(audio=audio_file, content_type='audio/wav', timestamps=True, word_confidence=True, speaker_labels=True).get_result()
