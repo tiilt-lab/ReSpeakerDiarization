@@ -8,7 +8,7 @@ if(len(sys.argv) == 4):
     chunk_length_ms = int(sys.argv[2])*1000
     chunks = make_chunks(myAudio, chunk_length_ms)
     for i, chunk in enumerate(chunks):
-        chunk_name = "chunk{0}.wav".format(i)
+        chunk_name = "/chunk{0}.wav".format(i)
         print("exporting " + chunk_name)
         chunk.export(dest+chunk_name, format="wav")
 
