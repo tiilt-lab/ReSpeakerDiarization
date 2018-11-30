@@ -157,9 +157,10 @@ def speakerDiarization(filename, n_speakers, mt_size=2.0, mt_step=0.2,
     #print()
     #print(prev_mt_feats_norm)
 
+    print(len(mt_feats_norm[0]))
 
     if n_speakers <= 0:
-        s_range = range(2, 10)
+        s_range = range(2, min(len(mt_feats_norm[0]), 10))
     else:
         s_range = [n_speakers]
     clsAll = []
@@ -323,10 +324,13 @@ class_names = ""
 i=0
 
 dir = sys.argv[1]
+mt_size = float(sys.argv[2])
+mt_step = float(sys.argv[3])
+
 
 while os.path.isfile("{}/chunk{}.wav".format(dir, i)):
     file = "{}/chunk{}.wav".format(dir, i)
-    cls, curr_mt_feats, class_names, centers = speakerDiarization(file, 0, 2.0, .2, .05, 0, False, prev_mt_feats)
+    cls, curr_mt_feats, class_names, centers = speakerDiarization(file, 0, mt_size, mt_step, .05, 0, False, prev_mt_feats)
     prev_mt_feats = curr_mt_feats
     i += 1
 
@@ -338,7 +342,7 @@ ax1 = fig.add_subplot(111)
 ax1.set_yticks(numpy.array(range(len(class_names))))
 ax1.axis((0, duration, -1, len(class_names)))
 ax1.set_yticklabels(class_names)
-ax1.plot(numpy.array(range(len(cls)))*.2+.2/2.0, cls)
+ax1.plot(numpy.array(range(len(cls)))*mt_step+mt_step/mt_size, cls)
 plt.show()
 
 #print(speakerDiarization("data/diarizationExample.wav",0,1.0,.2,.05,0,False))
