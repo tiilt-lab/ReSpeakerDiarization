@@ -2,6 +2,8 @@ from pydub import AudioSegment
 from pydub.utils import make_chunks
 import sys
 
+//args: source chunk_length dest 
+
 if(len(sys.argv) == 4):
     dest = sys.argv[3]
     myAudio = AudioSegment.from_file(sys.argv[1], "wav")
