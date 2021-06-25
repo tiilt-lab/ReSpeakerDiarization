@@ -2,7 +2,7 @@ from pydub import AudioSegment
 from pydub.utils import make_chunks
 import sys
 
-//args: source chunk_length dest 
+//args: source chunk_length(s) dest 
 
 if(len(sys.argv) == 4):
     dest = sys.argv[3]
