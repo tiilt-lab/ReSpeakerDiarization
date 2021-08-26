@@ -5,6 +5,7 @@ import os
 from pyAudioAnalysis import audioBasicIO
 import matplotlib.pyplot as plt
 
+
 if __name__ == "__main__":
     prev_mt_feats_norm = numpy.array([])
     prev_mt_feats_norm_or = numpy.array([])
